@@ -1,55 +1,55 @@
 'use client'
 
 import React from 'react'
-import { HeartPulse, Menu, User } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { HeartPulse, LayoutDashboard, Zap, BarChart2 } from 'lucide-react'
 
 interface NavbarProps {
-  setSidebarOpen: (open: boolean) => void
+  activeTab: string
+  setActiveTab: (tab: string) => void
 }
 
-export default function Navbar({ setSidebarOpen }: NavbarProps) {
+const navItems = [
+  { id: 'overview',  label: 'Dashboard',   icon: LayoutDashboard },
+  { id: 'predict',   label: 'Predictions', icon: Zap },
+  { id: 'analytics', label: 'Analytics',   icon: BarChart2 },
+]
+
+export default function Navbar({ activeTab, setActiveTab }: NavbarProps) {
   return (
-    <nav className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 shadow-md">
-      <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-        {/* Left Section */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(true)}
-            className="lg:hidden"
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
+    <header className="sticky top-0 z-40">
+      <div className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 h-0.5" />
+      <nav className="bg-white/95 dark:bg-gray-950/95 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center h-14 px-4 sm:px-6 lg:px-8 gap-6">
+          <div className="flex items-center gap-2.5 flex-shrink-0">
+            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow">
+              <HeartPulse className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-base font-bold text-gray-900 dark:text-white tracking-tight hidden sm:block">CardioPredict</span>
+          </div>
 
-          <div className="hidden sm:flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-rose-500 to-red-600 rounded-lg flex items-center justify-center shadow-md">
-              <HeartPulse className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white leading-none">CardioPredict</h1>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-none">Cardiovascular Risk AI</p>
-            </div>
+          <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+
+          <div className="flex items-center gap-1">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  activeTab === item.id
+                    ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+              >
+                <item.icon className={`w-4 h-4 ${ activeTab === item.id ? 'text-indigo-500' : '' }`} />
+                {item.label}
+                {activeTab === item.id && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                )}
+              </button>
+            ))}
           </div>
         </div>
-
-        {/* Center Section */}
-        <div className="hidden md:block text-center">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Cardiovascular Disease Risk Predictor
-          </p>
-        </div>
-
-        {/* Right Section */}
-        <div className="flex items-center gap-2 sm:gap-4">
-          <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   )
 }
