@@ -24,9 +24,9 @@ const featureImportanceData = [
 ]
 
 const summaryStats = [
-  { label: 'Best ROC AUC', value: '79.8%', sub: 'RF Tuned model', icon: TrendingUp, accent: 'emerald' },
-  { label: 'Overfitting Gap', value: '3.2%', sub: 'Train–Test difference', icon: Gauge, accent: 'indigo' },
-  { label: 'Tuning Impact', value: '+1.5%', sub: 'Accuracy improvement', icon: TrendingDown, accent: 'violet' },
+  { label: 'Best Test ROC AUC', value: '0.800544', sub: 'RF Tuned model', icon: TrendingUp, accent: 'emerald' },
+  { label: 'Baseline Test ROC AUC', value: '0.781161', sub: 'Random Forest baseline', icon: Gauge, accent: 'indigo' },
+  { label: 'Best CV ROC AUC', value: '0.7994', sub: 'GridSearchCV (cv=3)', icon: TrendingDown, accent: 'violet' },
 ]
 
 const accentBg: Record<string, string> = {
@@ -133,26 +133,15 @@ export default function Analytics() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {[
-                { fold: 'Fold 1', score: 0.7862 },
-                { fold: 'Fold 2', score: 0.7881 },
-                { fold: 'Fold 3', score: 0.7845 },
-                { fold: 'Fold 4', score: 0.7858 },
-                { fold: 'Fold 5', score: 0.7868 },
-              ].map((item) => (
-                <div key={item.fold}>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{item.fold}</span>
-                    <span className="text-xs font-bold text-gray-900 dark:text-white">{item.score.toFixed(4)}</span>
-                  </div>
-                  <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-                    <div className="h-2 bg-indigo-500 rounded-full" style={{ width: `${item.score * 100}%` }} />
-                  </div>
-                </div>
-              ))}
-              <div className="mt-4 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900">
-                <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium uppercase tracking-wider mb-1">Average CV Score</p>
-                <p className="text-xl font-bold text-indigo-900 dark:text-indigo-100">0.7864 <span className="text-sm font-normal">± 0.0026</span></p>
+              <div className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Grid Search Validation</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">Best CV ROC AUC: 0.7994</p>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Method: GridSearchCV with cv=3</p>
+              </div>
+              <div className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Learning Curve Setup</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">ROC AUC learning curve with cv=5</p>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Per-fold scores are not explicitly printed in the notebook output.</p>
               </div>
             </div>
           </CardContent>
@@ -166,9 +155,9 @@ export default function Analytics() {
           <CardContent>
             <div className="space-y-3">
               {[
-                { model: 'Logistic Regression', auc: 0.786, accuracy: 0.724, best: false },
-                { model: 'RF Baseline', auc: 0.783, accuracy: 0.721, best: false },
-                { model: 'RF Tuned', auc: 0.798, accuracy: 0.732, best: true },
+                { model: 'Logistic Regression', auc: null, accuracy: 0.7203815626592879, best: false },
+                { model: 'RF Baseline', auc: 0.781161, accuracy: 0.719216, best: false },
+                { model: 'RF Tuned', auc: 0.800544, accuracy: 0.731013, best: true },
               ].map((item) => (
                 <div key={item.model} className={`p-3 rounded-xl border ${item.best ? 'border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/50' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50'}`}>
                   <div className="flex items-center justify-between mb-2">
@@ -176,7 +165,7 @@ export default function Analytics() {
                     {item.best && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500 text-white">BEST</span>}
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div><p className="text-gray-400">ROC AUC</p><p className="font-bold text-gray-900 dark:text-white">{item.auc.toFixed(3)}</p></div>
+                    <div><p className="text-gray-400">ROC AUC</p><p className="font-bold text-gray-900 dark:text-white">{item.auc === null ? 'N/A' : item.auc.toFixed(3)}</p></div>
                     <div><p className="text-gray-400">Accuracy</p><p className="font-bold text-gray-900 dark:text-white">{(item.accuracy * 100).toFixed(1)}%</p></div>
                   </div>
                 </div>
@@ -198,12 +187,12 @@ export default function Analytics() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
-              'Random Forest (Tuned) achieves best performance with 79.8% ROC AUC',
-              'Low overfitting gap (3.2%) indicates good generalization capability',
+              'Random Forest (Tuned) achieves best test ROC AUC of 0.800544',
+              'Best CV ROC AUC from GridSearchCV (cv=3) is 0.7994',
               'age, systolic_bp, and weight are the top 3 predictive features',
-              'CV stability (±0.003) shows consistent performance across data splits',
-              'Hyperparameter tuning improved accuracy by +1.5%',
-              'ROC AUC improved from 0.783 → 0.798 after tuning',
+              'Notebook includes learning curve with ROC AUC using cv=5',
+              'Hyperparameter tuning improved accuracy by +1.18% (0.719216 to 0.731013)',
+              'ROC AUC improved from 0.781161 to 0.800544 after tuning',
             ].map((insight) => (
               <div key={insight} className="flex items-start gap-2 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
                 <span className="w-4 h-4 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center flex-shrink-0 mt-0.5">

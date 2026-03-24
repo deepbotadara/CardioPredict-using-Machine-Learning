@@ -335,9 +335,9 @@ export default function PredictionForm() {
                   <CardContent className="px-5 pb-5 pt-3">
                     <div className="space-y-3">
                       {[
-                        { name: 'Logistic Regression',    accuracy: 72.4, auc: 0.786, color: 'bg-indigo-500',  textColor: 'text-indigo-600 dark:text-indigo-400',  bgColor: 'bg-indigo-50 dark:bg-indigo-950/50',  best: false },
-                        { name: 'Random Forest Baseline', accuracy: 72.1, auc: 0.783, color: 'bg-violet-500',  textColor: 'text-violet-600 dark:text-violet-400',  bgColor: 'bg-violet-50 dark:bg-violet-950/50',  best: false },
-                        { name: 'Random Forest Tuned',    accuracy: 73.2, auc: 0.798, color: 'bg-emerald-500', textColor: 'text-emerald-600 dark:text-emerald-400', bgColor: 'bg-emerald-50 dark:bg-emerald-950/50', best: true  },
+                        { name: 'Logistic Regression',    accuracy: 72.04, auc: null,     color: 'bg-indigo-500',  textColor: 'text-indigo-600 dark:text-indigo-400',  bgColor: 'bg-indigo-50 dark:bg-indigo-950/50',  best: false },
+                        { name: 'Random Forest Baseline', accuracy: 71.92, auc: 0.781161, color: 'bg-violet-500',  textColor: 'text-violet-600 dark:text-violet-400',  bgColor: 'bg-violet-50 dark:bg-violet-950/50',  best: false },
+                        { name: 'Random Forest Tuned',    accuracy: 73.10, auc: 0.800544, color: 'bg-emerald-500', textColor: 'text-emerald-600 dark:text-emerald-400', bgColor: 'bg-emerald-50 dark:bg-emerald-950/50', best: true  },
                       ].map((m) => (
                         <div key={m.name} className={`rounded-xl p-3 border ${ m.best ? `border-emerald-200 dark:border-emerald-800 ${m.bgColor}` : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50' }`}>
                           <div className="flex items-center justify-between mb-2">
@@ -358,9 +358,9 @@ export default function PredictionForm() {
                             <div>
                               <p className="text-[10px] text-gray-400 mb-1">ROC AUC</p>
                               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                                <div className={`h-1.5 rounded-full ${m.color}`} style={{ width: `${m.auc * 100}%` }} />
+                                <div className={`h-1.5 rounded-full ${m.color}`} style={{ width: `${(m.auc ?? 0) * 100}%` }} />
                               </div>
-                              <p className={`text-[10px] font-bold mt-0.5 ${m.textColor}`}>{m.auc}</p>
+                              <p className={`text-[10px] font-bold mt-0.5 ${m.textColor}`}>{m.auc === null ? 'N/A' : m.auc.toFixed(6)}</p>
                             </div>
                           </div>
                         </div>

@@ -5,10 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { TrendingUp, Activity, Brain, CheckCircle2, Layers, ShieldCheck } from 'lucide-react'
 
-const modelMetrics = [
-  { name: 'Logistic Regression', accuracy: 0.724, auc: 0.786 },
-  { name: 'RF Baseline', accuracy: 0.721, auc: 0.783 },
-  { name: 'RF Tuned', accuracy: 0.732, auc: 0.798 },
+const modelMetrics: Array<{ name: string; accuracy: number; auc: number | null }> = [
+  { name: 'Logistic Regression', accuracy: 0.7203815626592879, auc: null },
+  { name: 'RF Baseline', accuracy: 0.719216, auc: 0.781161 },
+  { name: 'RF Tuned', accuracy: 0.731013, auc: 0.800544 },
 ]
 
 const confusionData = [
@@ -19,18 +19,18 @@ const confusionData = [
 ]
 
 const performanceData = [
-  { metric: 'Accuracy', 'LR': 72.4, 'RF-B': 72.1, 'RF-T': 73.2 },
-  { metric: 'Precision', 'LR': 74.6, 'RF-B': 73.2, 'RF-T': 75.7 },
-  { metric: 'Recall', 'LR': 67.8, 'RF-B': 69.7, 'RF-T': 68.3 },
-  { metric: 'F1 Score', 'LR': 71.1, 'RF-B': 71.4, 'RF-T': 71.8 },
-  { metric: 'ROC AUC', 'LR': 78.6, 'RF-B': 78.3, 'RF-T': 79.8 },
+  { metric: 'Accuracy', 'LR': 72.04, 'RF-B': 71.92, 'RF-T': 73.10 },
+  { metric: 'Precision', 'LR': null, 'RF-B': 72.42, 'RF-T': 75.78 },
+  { metric: 'Recall', 'LR': null, 'RF-B': 69.89, 'RF-T': 67.11 },
+  { metric: 'F1 Score', 'LR': null, 'RF-B': 71.13, 'RF-T': 71.18 },
+  { metric: 'ROC AUC', 'LR': null, 'RF-B': 78.12, 'RF-T': 80.05 },
 ]
 
 const kpis = [
   { label: 'Best Accuracy', value: '73.2%', sub: 'RF Tuned Model', icon: TrendingUp, color: 'indigo' },
-  { label: 'Best ROC AUC', value: '0.798', sub: 'Random Forest', icon: Activity, color: 'emerald' },
+  { label: 'Best ROC AUC', value: '0.800544', sub: 'Random Forest (Tuned)', icon: Activity, color: 'emerald' },
   { label: 'Models Active', value: '3', sub: 'All tuned & ready', icon: Layers, color: 'violet' },
-  { label: 'CV Stability', value: '±0.003', sub: '5-fold cross-validation', icon: ShieldCheck, color: 'amber' },
+  { label: 'Best CV ROC AUC', value: '0.7994', sub: 'GridSearchCV (cv=3)', icon: ShieldCheck, color: 'amber' },
 ]
 
 const colorMap: Record<string, string> = {
@@ -160,10 +160,10 @@ export default function Overview() {
                   </div>
                   <div className="flex justify-between items-center mt-1">
                     <span className="text-xs text-gray-500">ROC AUC</span>
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">{model.auc.toFixed(3)}</span>
+                    <span className="text-sm font-bold text-gray-900 dark:text-white">{model.auc === null ? 'N/A' : model.auc.toFixed(3)}</span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                    <div className={`h-1.5 rounded-full ${ i === 2 ? 'bg-emerald-500' : 'bg-gray-400' }`} style={{ width: `${model.auc * 100}%` }} />
+                    <div className={`h-1.5 rounded-full ${ i === 2 ? 'bg-emerald-500' : 'bg-gray-400' }`} style={{ width: `${(model.auc ?? 0) * 100}%` }} />
                   </div>
                 </div>
               </div>
