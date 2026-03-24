@@ -65,10 +65,19 @@ const getBpCategory = (sys: number) => {
   return           { label: 'Stage 2 Hyper',       color: 'text-rose-500' }
 }
 
+const VALIDATION_BOUNDS = {
+  age:    { min: 1,   max: 120 },
+  weight: { min: 10,  max: 300 },
+  height: { min: 50,  max: 250 },
+  ap_hi:  { min: 60,  max: 300 },
+  ap_lo:  { min: 40,  max: 200 },
+} as const
+
 export default function PredictionForm() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<PredictionResult | null>(null)
   const [resultPage, setResultPage] = useState(0)
+  const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     age_years: 45, weight: 70, height: 170, gender: 1,
     cholesterol: 1, gluc: 1, ap_hi: 120, ap_lo: 80,
@@ -78,9 +87,32 @@ export default function PredictionForm() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: isNaN(Number(value)) ? value : Number(value) }))
+    setError(null)
+  }
+
+  const validateForm = (): string | null => {
+    const { age_years, weight, height, ap_hi, ap_lo } = formData
+    if (age_years < VALIDATION_BOUNDS.age.min || age_years > VALIDATION_BOUNDS.age.max)
+      return `Age must be between ${VALIDATION_BOUNDS.age.min} and ${VALIDATION_BOUNDS.age.max} years.`
+    if (weight < VALIDATION_BOUNDS.weight.min || weight > VALIDATION_BOUNDS.weight.max)
+      return `Weight must be between ${VALIDATION_BOUNDS.weight.min} and ${VALIDATION_BOUNDS.weight.max} kg.`
+    if (height < VALIDATION_BOUNDS.height.min || height > VALIDATION_BOUNDS.height.max)
+      return `Height must be between ${VALIDATION_BOUNDS.height.min} and ${VALIDATION_BOUNDS.height.max} cm.`
+    if (ap_hi < VALIDATION_BOUNDS.ap_hi.min || ap_hi > VALIDATION_BOUNDS.ap_hi.max)
+      return `Systolic BP must be between ${VALIDATION_BOUNDS.ap_hi.min} and ${VALIDATION_BOUNDS.ap_hi.max} mmHg.`
+    if (ap_lo < VALIDATION_BOUNDS.ap_lo.min || ap_lo > VALIDATION_BOUNDS.ap_lo.max)
+      return `Diastolic BP must be between ${VALIDATION_BOUNDS.ap_lo.min} and ${VALIDATION_BOUNDS.ap_lo.max} mmHg.`
+    if (ap_lo >= ap_hi) return 'Diastolic BP must be lower than Systolic BP.'
+    return null
   }
 
   const handlePredict = async () => {
+    const validationError = validateForm()
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+    setError(null)
     setLoading(true)
     try {
       const heightM = formData.height / 100
@@ -104,8 +136,8 @@ export default function PredictionForm() {
         riskLevel: data.risk_level.toLowerCase(),
         confidence: data.probability[1] * 100,
       })
-    } catch (error) {
-      alert(`Error making prediction: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } catch (err) {
+      setError(`Error making prediction: ${err instanceof Error ? err.message : 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
@@ -269,6 +301,13 @@ export default function PredictionForm() {
               </div>
             </CardContent>
           </Card>
+
+          {error && (
+            <div className="flex items-start gap-2 px-4 py-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400 text-sm">
+              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
           <Button
             onClick={handlePredict}
