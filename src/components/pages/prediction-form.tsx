@@ -65,10 +65,30 @@ const getBpCategory = (sys: number) => {
   return           { label: 'Stage 2 Hyper',       color: 'text-rose-500' }
 }
 
+type ModelKey = 'logistic_regression' | 'rf_baseline' | 'rf_tuned'
+
+type ModelOption = {
+  key: ModelKey
+  name: string
+  accuracy: number
+  auc: number
+  color: string
+  textColor: string
+  bgColor: string
+  borderColor: string
+}
+
+const MODEL_OPTIONS: ModelOption[] = [
+  { key: 'logistic_regression', name: 'Logistic Regression',    accuracy: 72.4, auc: 0.786, color: 'bg-indigo-500',  textColor: 'text-indigo-600 dark:text-indigo-400',  bgColor: 'bg-indigo-50 dark:bg-indigo-950/50',  borderColor: 'border-indigo-300 dark:border-indigo-700' },
+  { key: 'rf_baseline',         name: 'Random Forest Baseline', accuracy: 72.1, auc: 0.783, color: 'bg-violet-500',  textColor: 'text-violet-600 dark:text-violet-400',  bgColor: 'bg-violet-50 dark:bg-violet-950/50',  borderColor: 'border-violet-300 dark:border-violet-700' },
+  { key: 'rf_tuned',            name: 'Random Forest Tuned',    accuracy: 73.2, auc: 0.798, color: 'bg-emerald-500', textColor: 'text-emerald-600 dark:text-emerald-400', bgColor: 'bg-emerald-50 dark:bg-emerald-950/50', borderColor: 'border-emerald-300 dark:border-emerald-700' },
+]
+
 export default function PredictionForm() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<PredictionResult | null>(null)
   const [resultPage, setResultPage] = useState(0)
+  const [selectedModel, setSelectedModel] = useState<ModelKey>('rf_tuned')
   const [formData, setFormData] = useState({
     age_years: 45, weight: 70, height: 170, gender: 1,
     cholesterol: 1, gluc: 1, ap_hi: 120, ap_lo: 80,
@@ -88,7 +108,7 @@ export default function PredictionForm() {
       const response = await fetch('/api/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'random_forest', features: { ...formData, bmi } }),
+        body: JSON.stringify({ model: selectedModel, features: { ...formData, bmi } }),
       })
       if (!response.ok) {
         const err = await response.json()
@@ -97,7 +117,7 @@ export default function PredictionForm() {
       const data = await response.json()
       setResultPage(0)
       setResult({
-        model: 'Random Forest (Tuned)',
+        model: data.model,
         prediction: data.prediction,
         prob0: data.probability[0],
         prob1: data.probability[1],
@@ -140,7 +160,7 @@ export default function PredictionForm() {
         </div>
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950 border border-indigo-100 dark:border-indigo-900">
           <ShieldCheck className="w-4 h-4 text-indigo-500" />
-          <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">RF Tuned Model</span>
+          <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">{MODEL_OPTIONS.find(m => m.key === selectedModel)?.name ?? MODEL_OPTIONS[MODEL_OPTIONS.length - 1].name}</span>
         </div>
       </div>
 
@@ -270,6 +290,49 @@ export default function PredictionForm() {
             </CardContent>
           </Card>
 
+          <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 overflow-hidden">
+            <div className="h-0.5 bg-gradient-to-r from-indigo-500 to-emerald-500" />
+            <CardHeader className="pb-3 pt-4 px-5">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center">
+                  <FlaskConical className="w-3.5 h-3.5 text-indigo-500" />
+                </div>
+                <CardTitle className="text-sm font-semibold text-gray-900 dark:text-white">Select Model</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="px-5 pb-5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {MODEL_OPTIONS.map((m) => {
+                  const active = selectedModel === m.key
+                  return (
+                    <button
+                      key={m.key}
+                      type="button"
+                      onClick={() => setSelectedModel(m.key)}
+                      className={`text-left rounded-xl p-3 border-2 transition-all ${active ? `${m.bgColor} ${m.borderColor}` : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className={`w-2 h-2 rounded-full ${m.color}`} />
+                        {active && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${m.color} text-white`}>SELECTED</span>}
+                      </div>
+                      <p className="text-[11px] font-semibold text-gray-800 dark:text-gray-200 leading-tight">{m.name}</p>
+                      <div className="mt-1.5 space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] text-gray-400">Acc</span>
+                          <span className={`text-[9px] font-bold ${active ? m.textColor : 'text-gray-500 dark:text-gray-400'}`}>{m.accuracy}%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] text-gray-400">AUC</span>
+                          <span className={`text-[9px] font-bold ${active ? m.textColor : 'text-gray-500 dark:text-gray-400'}`}>{m.auc}</span>
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
           <Button
             onClick={handlePredict}
             disabled={loading}
@@ -334,37 +397,41 @@ export default function PredictionForm() {
                   </div>
                   <CardContent className="px-5 pb-5 pt-3">
                     <div className="space-y-3">
-                      {[
-                        { name: 'Logistic Regression',    accuracy: 72.4, auc: 0.786, color: 'bg-indigo-500',  textColor: 'text-indigo-600 dark:text-indigo-400',  bgColor: 'bg-indigo-50 dark:bg-indigo-950/50',  best: false },
-                        { name: 'Random Forest Baseline', accuracy: 72.1, auc: 0.783, color: 'bg-violet-500',  textColor: 'text-violet-600 dark:text-violet-400',  bgColor: 'bg-violet-50 dark:bg-violet-950/50',  best: false },
-                        { name: 'Random Forest Tuned',    accuracy: 73.2, auc: 0.798, color: 'bg-emerald-500', textColor: 'text-emerald-600 dark:text-emerald-400', bgColor: 'bg-emerald-50 dark:bg-emerald-950/50', best: true  },
-                      ].map((m) => (
-                        <div key={m.name} className={`rounded-xl p-3 border ${ m.best ? `border-emerald-200 dark:border-emerald-800 ${m.bgColor}` : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50' }`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full ${m.color}`} />
-                              <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{m.name}</span>
-                            </div>
-                            {m.best && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white">ACTIVE</span>}
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <p className="text-[10px] text-gray-400 mb-1">Accuracy</p>
-                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                                <div className={`h-1.5 rounded-full ${m.color}`} style={{ width: `${m.accuracy}%` }} />
+                      {MODEL_OPTIONS.map((m) => {
+                        const isSelected = selectedModel === m.key
+                        return (
+                          <button
+                            key={m.key}
+                            type="button"
+                            onClick={() => setSelectedModel(m.key)}
+                            className={`w-full text-left rounded-xl p-3 border-2 transition-all ${isSelected ? `${m.bgColor} ${m.borderColor}` : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 hover:border-gray-200 dark:hover:border-gray-700'}`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full ${m.color}`} />
+                                <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{m.name}</span>
                               </div>
-                              <p className={`text-[10px] font-bold mt-0.5 ${m.textColor}`}>{m.accuracy}%</p>
+                              {isSelected && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${m.color} text-white`}>ACTIVE</span>}
                             </div>
-                            <div>
-                              <p className="text-[10px] text-gray-400 mb-1">ROC AUC</p>
-                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                                <div className={`h-1.5 rounded-full ${m.color}`} style={{ width: `${m.auc * 100}%` }} />
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <p className="text-[10px] text-gray-400 mb-1">Accuracy</p>
+                                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                                  <div className={`h-1.5 rounded-full ${m.color}`} style={{ width: `${m.accuracy}%` }} />
+                                </div>
+                                <p className={`text-[10px] font-bold mt-0.5 ${m.textColor}`}>{m.accuracy}%</p>
                               </div>
-                              <p className={`text-[10px] font-bold mt-0.5 ${m.textColor}`}>{m.auc}</p>
+                              <div>
+                                <p className="text-[10px] text-gray-400 mb-1">ROC AUC</p>
+                                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                                  <div className={`h-1.5 rounded-full ${m.color}`} style={{ width: `${m.auc * 100}%` }} />
+                                </div>
+                                <p className={`text-[10px] font-bold mt-0.5 ${m.textColor}`}>{m.auc}</p>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      ))}
+                          </button>
+                        )
+                      })}
                     </div>
                   </CardContent>
                 </Card>
@@ -455,7 +522,7 @@ export default function PredictionForm() {
                         { label: 'Systolic BP', value: `${formData.ap_hi} mmHg`,  extra: bpCat.label,  extraColor: bpCat.color },
                         { label: 'Diastolic BP',value: `${formData.ap_lo} mmHg` },
                         { label: 'Gender',      value: formData.gender === 2 ? 'Male' : 'Female' },
-                        { label: 'Model',       value: 'RF Tuned' },
+                        { label: 'Model',       value: result.model },
                       ].map(({ label, value, extra, extraColor }) => (
                         <div key={label} className="px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
                           <p className="text-[10px] text-gray-400 mb-0.5">{label}</p>
