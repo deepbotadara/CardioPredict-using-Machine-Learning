@@ -120,46 +120,51 @@ ml-dashboard/
 
 ---
 
-## 🔌 API Integration (Next Steps)
+## 🔌 API Integration (Flask Backend)
 
-To connect with your ML backend:
+This project now uses a Flask API for real model inference.
 
-### 1. Create API Routes
-```typescript
-// src/app/api/predict/route.ts
-export async function POST(request: Request) {
-  const data = await request.json()
-  // Call your Python ML backend here
-  return Response.json({ prediction: 0 or 1 })
-}
-```
+### 1. Export your trained model
+From your notebook, save the tuned model to:
 
-### 2. Update Dashboard Prediction Handler
-```typescript
-const handlePrediction = async () => {
-  const response = await fetch('/api/predict', {
-    method: 'POST',
-    body: JSON.stringify(inputData)
-  })
-  const result = await response.json()
-  // Display prediction result
-}
-```
-
-### 3. Connect to Python Backend
-You can use FastAPI or Flask with your trained model:
 ```python
-# FastAPI example
-from fastapi import FastAPI
-from joblib import load
-
-model = load('artifacts/best_random_forest_tuned.joblib')
-
-@app.post("/predict")
-async def predict(data: dict):
-    prediction = model.predict([data.values()])
-    return {"prediction": int(prediction[0])}
+joblib.dump(tuned_rf, "artifacts/best_random_forest_tuned.joblib")
 ```
+
+### 2. Start Flask backend
+```bash
+cd flask_api
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
+```
+
+Flask runs at `http://127.0.0.1:5000`.
+
+If `artifacts/best_random_forest_tuned.joblib` is missing, Flask will try to train a tuned Random Forest automatically from the notebook dataset file `cardio_train_properly_separated_comma.csv`.
+
+You can optionally set dataset/model paths:
+
+```powershell
+$env:DATASET_PATH="D:\path\to\cardio_train_properly_separated_comma.csv"
+$env:MODEL_PATH="D:\path\to\best_random_forest_tuned.joblib"
+```
+
+### 3. Configure frontend URL
+Create `.env.local` in project root:
+
+```env
+NEXT_PUBLIC_FLASK_API_URL=http://127.0.0.1:5000
+```
+
+### 4. Start Next.js frontend
+```bash
+npm install
+npm run dev
+```
+
+The prediction form will call Flask `POST /predict` directly.
 
 ---
 

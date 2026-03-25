@@ -69,6 +69,7 @@ export default function PredictionForm() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<PredictionResult | null>(null)
   const [resultPage, setResultPage] = useState(0)
+  const flaskApiBase = process.env.NEXT_PUBLIC_FLASK_API_URL ?? 'http://127.0.0.1:5000'
   const [formData, setFormData] = useState({
     age_years: 45, weight: 70, height: 170, gender: 1,
     cholesterol: 1, gluc: 1, ap_hi: 120, ap_lo: 80,
@@ -85,14 +86,15 @@ export default function PredictionForm() {
     try {
       const heightM = formData.height / 100
       const bmi = formData.weight / (heightM * heightM)
-      const response = await fetch('/api/predict', {
+      const response = await fetch(`${flaskApiBase}/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: 'random_forest', features: { ...formData, bmi } }),
       })
       if (!response.ok) {
         const err = await response.json()
-        throw new Error(err.error || `API error: ${response.status}`)
+        const detail = err.details ? ` ${err.details}` : ''
+        throw new Error((err.error || `API error: ${response.status}`) + detail)
       }
       const data = await response.json()
       setResultPage(0)
